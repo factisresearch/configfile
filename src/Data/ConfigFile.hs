@@ -100,8 +100,6 @@ module Data.ConfigFile
 
 import Data.ConfigFile.Types
 import Data.ConfigFile.Parser
-import Data.Either.Utils
-import Data.String.Utils
 import qualified Data.Map as Map
 import Data.List
 import System.IO(Handle)
@@ -111,6 +109,29 @@ import Control.Monad.Error
 -- For interpolatingAccess
 import Text.ParserCombinators.Parsec.Error (errorMessages, Message(..))
 import Text.ParserCombinators.Parsec (parse)
+
+----------------------------------------------------------------------
+-- Utils
+----------------------------------------------------------------------
+
+maybeToEither :: MonadError e m => e -> Maybe a -> m a
+maybeToEither e = maybe (throwError e) return
+
+eitherToMonadError :: MonadError e m => Either e a -> m a
+eitherToMonadError = either throwError return
+
+-- | Replace a subsequence everywhere it occurs. The first argument must
+--   not be the empty list.
+--
+-- > replace "el" "_" "Hello Bella" == "H_lo B_la"
+-- > replace "el" "e" "Hello"       == "Helo"
+-- > replace "" "e" "Hello"         == undefined
+-- > \xs ys -> not (null xs) ==> replace xs xs ys == ys
+replace :: (Eq a) => [a] -> [a] -> [a] -> [a]
+replace [] _ _ = error "Extra.replace, first argument cannot be empty"
+replace from to xs | Just xs <- stripPrefix from xs = to ++ replace from to xs
+replace from to (x:xs) = x : replace from to xs
+replace from to [] = []
 
 ----------------------------------------------------------------------
 -- Basic types / default values

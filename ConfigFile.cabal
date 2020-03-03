@@ -44,7 +44,7 @@ Library
    UndecidableInstances, TypeSynonymInstances, FlexibleContexts,
    FlexibleInstances
   Build-Depends: parsec, base < 5,
-                mtl, MissingH>=1.0.0, containers
+                mtl, containers
   GHC-Options: -O2 -Wall
 
 Executable runtests

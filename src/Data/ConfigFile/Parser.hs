@@ -28,17 +28,34 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 -}
 module Data.ConfigFile.Parser
 (
- parse_string, parse_file, parse_handle, interpmain, ParseOutput
+ parse_string, parse_file, parse_handle, interpmain, ParseOutput,
+ strip
        --satisfyG,
        --main
 ) where
+import Data.Char
+import Data.List
 import Text.ParserCombinators.Parsec
 import Control.Monad.Error(throwError, MonadError)
-import Data.String.Utils
 import Data.ConfigFile.Lexer
 import System.IO(Handle, hGetContents)
-import Text.ParserCombinators.Parsec.Utils
 import Data.ConfigFile.Types
+
+----------------------------------------------------------------------
+-- Utils
+----------------------------------------------------------------------
+
+type GeneralizedTokenParser a st b = GenParser (GeneralizedToken a) st b
+
+{- | Retrieve the next token from a 'GeneralizedToken' stream.
+   The given function should return the value to use, or Nothing
+   to cause an error. -}
+tokeng :: (Show a) => (a -> Maybe b) -> GeneralizedTokenParser a st b
+tokeng test =
+    token (show . snd) (fst) (test . snd)
+
+strip :: String -> String
+strip = dropWhile isSpace . dropWhileEnd isSpace
 
 ----------------------------------------------------------------------
 -- Exported funcs
@@ -124,7 +141,7 @@ coption =
 valmerge :: [String] -> String
 valmerge vallist =
     let vl2 = map strip vallist
-        in join "\n" vl2
+        in intercalate "\n" vl2
 
 ----------------------------------------------------------------------
 -- Interpolation

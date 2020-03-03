@@ -32,11 +32,19 @@ module Data.ConfigFile.Lexer
        --empty_line, sectheader_chars, sectheader, oname_chars, value_chars,
        --extension_line, optionkey, optionvalue, optionpair
        loken,
+       GeneralizedToken,
        CPTok(..)
 ) where
 
 import Text.ParserCombinators.Parsec
-import Text.ParserCombinators.Parsec.Utils
+
+type GeneralizedToken a = (SourcePos, a)
+
+{- | Generate (return) a 'GeneralizedToken'. -}
+togtok :: a -> GenParser b st (GeneralizedToken a)
+togtok tok = do
+              x <- getPosition
+              return (x, tok)
 
 data CPTok = IGNOREDATA
            | NEWSECTION String
