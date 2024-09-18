@@ -40,7 +40,7 @@ Library
     Data.ConfigFile.Parser,
     Data.ConfigFile.Monadic
   Other-Modules: Data.ConfigFile.Lexer
-  Extensions: ExistentialQuantification, OverlappingInstances,
+  Extensions: ExistentialQuantification
    UndecidableInstances, TypeSynonymInstances, FlexibleContexts,
    FlexibleInstances
   Build-Depends: parsec, base < 5,
@@ -50,12 +50,12 @@ Library
 Executable runtests
   if flag(buildtests)
     Buildable: True
-    Build-depends: HUnit, testpack
+    Build-depends: HUnit
   else
     Buildable: False
   Main-Is: runtests.hs
   HS-Source-Dirs: testsrc, src, .
   Other-Modules: Tests, ConfigParser.Maintest, ConfigParser.Parsertest
-  Extensions: ExistentialQuantification, OverlappingInstances,
+  Extensions: ExistentialQuantification
     UndecidableInstances, CPP, TypeSynonymInstances, FlexibleContexts,
     FlexibleInstances

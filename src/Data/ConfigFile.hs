@@ -1,4 +1,4 @@
-{-# LANGUAGE UndecidableInstances, OverlappingInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-
 Copyright (C) 2004-2008 John Goerzen <jgoerzen@complete.org>
 
@@ -104,7 +104,7 @@ import qualified Data.Map as Map
 import Data.List
 import System.IO(Handle)
 import Data.Char
-import Control.Monad.Error
+import Control.Monad.Except
 
 -- For interpolatingAccess
 import Text.ParserCombinators.Parsec.Error (errorMessages, Message(..))
@@ -436,10 +436,10 @@ The following will produce a False value:
  * false -}
     get :: MonadError CPError m => ConfigParser -> SectionSpec -> OptionSpec -> m a
 
-instance Get_C String where
+instance {-# OVERLAPPING #-} Get_C String where
     get cp s o = eitherToMonadError $ (accessfunc cp) cp s o
 
-instance Get_C Bool where
+instance {-# OVERLAPPING #-} Get_C Bool where
     get = getbool
 
 instance Read t => Get_C t where
@@ -818,7 +818,7 @@ Error\/IO monad.  That is, you will get an IO result back.  Here is a full
 standalone example of doing that:
 
 >import Data.ConfigFile
->import Control.Monad.Error
+>import Control.Monad.Except
 >
 >main = do
 >          rv <- runErrorT $

@@ -20,7 +20,6 @@ module ConfigParser.Parsertest(tests) where
 import Test.HUnit
 import Data.ConfigFile.Parser
 import Data.ConfigFile.Types
-import Test.HUnit.Tools
 import Control.Exception
 
 test_basic =
@@ -62,11 +61,11 @@ test_asserts =
          f "e test1" "#foo\nthis is bad data"
                      (Left (ParseError "\"(string)\" (line 2, column 1):\nunexpected \"t\"\nexpecting end of input, whitespace, start of comment, empty line, start of section or option separator", "lexer"))
         ,f "e test2" "[sect1]\n#iiiiii \n  extensionline\n#foo"
-                     (Left (ParseError "\"(string)\" (line 4, column 1):\nunexpected EXTENSIONLINE \"extensionline\"","parser"))
+                     (Left (ParseError "\"(string)\" (line 4, column 1):\nunexpected (\"(string)\" (line 4, column 1),EXTENSIONLINE \"extensionline\")\nexpecting end of input","parser"))
         ]
-        
+
 {-
-        
+
 
         assertRaises "e test1" (ErrorCall "Lexer: \"(string)\" (line 1, column 5):\nunexpected \"\\n\"\nexpecting Option separator")
                       ([] @=? parse_string "#foo\nthis is bad data")

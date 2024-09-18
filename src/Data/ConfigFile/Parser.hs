@@ -36,7 +36,7 @@ module Data.ConfigFile.Parser
 import Data.Char
 import Data.List
 import Text.ParserCombinators.Parsec
-import Control.Monad.Error(throwError, MonadError)
+import Control.Monad.Except(throwError, MonadError)
 import Data.ConfigFile.Lexer
 import System.IO(Handle, hGetContents)
 import Data.ConfigFile.Types
