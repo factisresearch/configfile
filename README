@@ -1,3 +1,5 @@
+NOTE: We use this fork of configfile to avoid a dependency on the missingh package
+
 Welcome to ConfigFile.
 
 For more information, visit http://software.complete.org/configfile
