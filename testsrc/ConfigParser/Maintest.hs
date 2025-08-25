@@ -19,13 +19,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 module ConfigParser.Maintest(tests) where
 import Test.HUnit
 import Data.ConfigFile
-import Data.Either.Utils
-import System.IO.PlafCompat(nullFileName)
-import Test.HUnit.Tools
 import Control.Exception
 import System.IO
 
-nullfile = openFile nullFileName ReadWriteMode
+{- | Pulls a "Right" value out of an Either value.  If the Either value is
+Left, raises an exception with "error". -}
+forceEither :: Show e => Either e a -> a
+forceEither (Left x)  = error (show x)
+forceEither (Right x) = x
+
+nullfile = openFile "/dev/null" ReadWriteMode
 testfile = "testsrc/ConfigParser/test.cfg"
 p inp = forceEither $ readstring emptyCP inp
 f msg inp exp conv = TestLabel msg $ TestCase $ assertEqual "" (Right exp) (conv (p inp))
@@ -78,20 +81,20 @@ test_basic =
               Right "o1" @=? get cp "sect1" "v1"
               Right "o2" @=? get cp "sect1" "v2"
               Right "o1" @=? get cp "DEFAULT" "v1"
-        , f3 "extensions to string" 
+        , f3 "extensions to string"
              "[sect1]\nfoo: bar\nbaz: l1\n l2\n   l3\n# c\nquux: asdf"
              "[sect1]\nbaz: l1\n    l2\n    l3\nfoo: bar\nquux: asdf\n\n"
              to_string
         ]
 
-test_defaults = 
+test_defaults =
     let cp = p "def: ault\n[sect1]\nfoo: bar\nbaz: quuz\nint: 2\nfloat: 3\nbool: yes\n[sect4]\ndef: different" in
       [
        f2 "default item" (Right "ault") (get cp "sect1" "def")
       ,f2 "normal item" (Right "bar") (get cp "sect1" "foo")
-      ,f2s "no option" (Left (NoOption "abc", "get (sect1/abc)")) 
+      ,f2s "no option" (Left (NoOption "abc", "get (sect1/abc)"))
                (get cp "sect1" "abc")
-      ,f2s "no section" (Left (NoSection "sect2", "get (sect2/foo)")) 
+      ,f2s "no section" (Left (NoSection "sect2", "get (sect2/foo)"))
                (get cp "sect2" "foo")
       ,f2 "default from bad sect" (Right "ault") (get cp "sect2" "def")
       ,f2 "overriding default" (Right "different") (get cp "sect4" "def")
@@ -104,12 +107,12 @@ test_defaults =
 test_nodefault =
     let cp = (p "def: ault\n[sect1]\nfoo: bar\nbaz: quuz\nint: 2\nfloat: 3\nbool: yes\n[sect4]\ndef: different"){usedefault = False} in
       [
-       f2s "default item" (Left (NoOption "def", "get (sect1/def)")) 
+       f2s "default item" (Left (NoOption "def", "get (sect1/def)"))
                (get cp "sect1" "def")
       ,f2 "normal item" (Right "bar") (get cp "sect1" "foo")
-      ,f2s "no option" (Left (NoOption "abc", "get (sect1/abc)")) 
+      ,f2s "no option" (Left (NoOption "abc", "get (sect1/abc)"))
                (get cp "sect1" "abc")
-      ,f2s "no section" (Left (NoSection "sect2", "get (sect2/foo)")) 
+      ,f2s "no section" (Left (NoSection "sect2", "get (sect2/foo)"))
                (get cp "sect2" "foo")
       ,f2s "default bad sect" (Left (NoSection "sect2", "get (sect2/def)"))
                (get cp "sect2" "def")
@@ -120,7 +123,7 @@ test_nodefault =
       -- default bool
       ]
 
-test_instances = 
+test_instances =
     let cp = p "[x]\na: true\nb: 1\nbad: never"
 	in [f2 "bool 1st" (Right True) (get cp "x" "a"),
 	    f2 "bool 1nd" (Right True) (get cp "x" "b"),
@@ -136,7 +139,7 @@ test_merge =
            ,f2 "merge3" (cp2) (merge cp cp2)
            ,f2 "merge4" (cp) (merge cp2 cp)]
 
-test_remove = 
+test_remove =
     let cp = forceEither $ readstring emptyCP "def:ault\n[sect1]\ns1o1: v1\ns1o2:v2\n[sect2]\ns2o1: v1\ns2o2: v2\n[sect3]"
         in [
             f2 "setup" ["sect1", "sect2", "sect3"] (sections cp)
@@ -159,43 +162,43 @@ test_remove =
                    y <- options x "sect1"
                    return (sections x, y)
                 )
-           ,f2 "option err 1" (Left (NoSection "sect4", 
+           ,f2 "option err 1" (Left (NoSection "sect4",
                                      "remove_option (sect4/s4o1)"))
                (remove_option cp "sect4" "s4o1")
            ,f2 "option err 2" (Left (NoOption "s1o3",
                                      "remove_option (sect1/s1o3)"))
                (remove_option cp "sect1" "s1o3")
            ]
-                  
-        
-       
-              
 
-test_ex_nomonad = 
-    do 
+
+
+
+
+test_ex_nomonad =
+    do
        fh <- nullfile
        val <- readfile emptyCP testfile
        let cp = forceEither val
        hPutStr fh "Your setting is:"
        hPutStr fh $ forceEither $ get cp "file1" "location"
 
-test_ex_errormonad = 
-    [ 
-      TestLabel "chaining1" $ TestCase $ 
-      (Right ["opt1", "opt2"]) @=? 
+test_ex_errormonad =
+    [
+      TestLabel "chaining1" $ TestCase $
+      (Right ["opt1", "opt2"]) @=?
        do let cp = emptyCP
           cp <- add_section cp "sect1"
           cp <- set cp "sect1" "opt1" "foo"
           cp <- set cp "sect1" "opt2" "bar"
           options cp "sect1"
-     ,TestLabel "chaining2" $ TestCase $ 
-      (Left (NoSection "sect2", "set (sect2/opt2)")) @=? 
+     ,TestLabel "chaining2" $ TestCase $
+      (Left (NoSection "sect2", "set (sect2/opt2)")) @=?
        do let cp = emptyCP
           cp <- add_section cp "sect1"
           cp <- set cp "sect1" "opt1" "foo"
           cp <- set cp "sect2" "opt2" "bar"
           options cp "sect1"
-     ,TestLabel "chaining3" $ TestCase $ 
+     ,TestLabel "chaining3" $ TestCase $
       ["opt1", "opt2"] @=? (
        forceEither $ do let cp = emptyCP
                         cp <- add_section cp "sect1"
@@ -205,7 +208,7 @@ test_ex_errormonad =
        )
     ]
 
-test_interp = 
+test_interp =
     let interpdoc = "[DEFAULT]\narch = i386\n\n[builder]\n" ++
                     "filename = test_%(arch)s.c\n" ++
                     "dir = /usr/src/%(filename)s\n" ++
